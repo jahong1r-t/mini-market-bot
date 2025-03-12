@@ -16,15 +16,19 @@ import uz.market.util.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import static uz.market.db.Datasource.*;
 
 public class AuthService extends MainBot {
     public void service(Update update) {
+        if (update == null || update.getMessage() == null) {
+            return;
+        }
+
         Long chatId = update.getMessage().getChatId();
         String text = update.getMessage().getText();
         User from = update.getMessage().getFrom();
+
 
         if (isRegister(chatId, Role.SELLER)) {
             new SellerService().service(update);
@@ -37,37 +41,28 @@ public class AuthService extends MainBot {
                 case AUTHORIZATION -> {
                     switch (text) {
                         case "/start" -> sendMessage(chatId, Message.authStart, keyboard(Utils.sellerOrBuyerKeyboard));
-
                         case Button.sellerButton -> {
-                            Seller seller = new Seller();
-                            seller.setUserId(chatId);
-                            seller.setUserName(from.getUserName() != null ? from.getUserName() : "Nomalum");
-                            seller.setFullName(from.getFirstName() + " " + (from.getLastName() != null ? from.getLastName() : ""));
-                            seller.setRole(Role.SELLER);
-                            seller.setBalance(0.0d);
-                            seller.setIsRegister(false);
-                            seller.setShops(new ArrayList<>());
+                            Seller seller = new Seller(chatId,
+                                    from.getUserName() != null ? from.getUserName() : "Nomalum",
+                                    from.getFirstName() + " " + (from.getLastName() != null ? from.getLastName() : ""),
+                                    null, Role.SELLER, false, 0.0);
+                            seller.setShopIds(new ArrayList<>());
                             users.put(chatId, seller);
-
                             sendMessage(chatId, Message.phoneRequest, createPhoneButton());
                             state.put(chatId, State.PHONE_NUMBER_REQUEST);
                         }
                         case Button.buyerButton -> {
-                            Buyer buyer = new Buyer();
-                            buyer.setUserId(chatId);
-                            buyer.setUserName(from.getUserName() != null ? from.getUserName() : "Nomalum");
-                            buyer.setFullName(from.getFirstName() + " " + (from.getLastName() != null ? from.getLastName() : ""));
-                            buyer.setRole(Role.BUYER);
-                            buyer.setBalance(0.0d);
-                            buyer.setIsRegister(false);
-                            buyer.setOrders(new ArrayList<>());
+                            Buyer buyer = new Buyer(chatId,
+                                    from.getUserName() != null ? from.getUserName() : "Nomalum",
+                                    from.getFirstName() + " " + (from.getLastName() != null ? from.getLastName() : ""),
+                                    null, Role.BUYER, false, 0.0);
+                            buyer.setOrderIds(new ArrayList<>());
                             users.put(chatId, buyer);
-
                             sendMessage(chatId, Message.phoneRequest, createPhoneButton());
                             state.put(chatId, State.PHONE_NUMBER_REQUEST);
                         }
                         default ->
-                                sendMessage(chatId, "Iltomos kerakli roleni tanlang:", keyboard(Utils.sellerOrBuyerKeyboard));
+                                sendMessage(chatId, "Iltimos kerakli roleni tanlang:", keyboard(Utils.sellerOrBuyerKeyboard));
                     }
                 }
                 case PHONE_NUMBER_REQUEST -> {
@@ -89,10 +84,8 @@ public class AuthService extends MainBot {
 
     public boolean isRegister(Long chatId, Role role) {
         uz.market.entity.User user = users.get(chatId);
-
         return user != null && user.getPhoneNumber() != null && user.getRole() == role;
     }
-
 
     private ReplyKeyboardMarkup createPhoneButton() {
         KeyboardRow row = new KeyboardRow();
@@ -109,5 +102,4 @@ public class AuthService extends MainBot {
         keyboard.setKeyboard(rows);
         return keyboard;
     }
-
 }

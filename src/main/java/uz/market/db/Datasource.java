@@ -5,19 +5,52 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
-import uz.market.entity.History;
-import uz.market.entity.User;
+import uz.market.entity.*;
 import uz.market.entity.enums.State;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Datasource {
-    public static Map<Long, User> users = new HashMap<>();
-    public static Map<Long, State> state = new HashMap<>();
-    public static Map<Long, History> history = new HashMap<>();
+
+    // Foydalanuvchilar (chatId -> User)
+    public static Map<Long, User> users = new ConcurrentHashMap<>();
+
+    // Do‘konlar (shopId -> Shop)
+    public static Map<String, Shop> shops = new ConcurrentHashMap<>();
+
+    // Mahsulotlar (productId -> Product)
+    public static Map<String, Product> products = new ConcurrentHashMap<>();
+
+    // Buyurtmalar (orderId -> Order)
+    public static Map<String, Order> orders = new ConcurrentHashMap<>();
+
+    // Savatlar (basketId -> Basket)
+    public static Map<String, Basket> baskets = new ConcurrentHashMap<>();
+
+    // Foydalanuvchi holatlari (chatId -> State)
+    public static Map<Long, State> state = new ConcurrentHashMap<>();
+
+    // usersdan buyer ni topib beradi
+    public static Buyer getBuyer(Long userId) {
+        User user = Datasource.users.get(userId);
+        if (user instanceof Buyer) {
+            return (Buyer) user;
+        }
+        return null;
+    }
+
+
+    // usersdan seller ni topib beradi
+    public static Seller getSeller(Long userId) {
+        User user = Datasource.users.get(userId);
+        if (user instanceof Seller) {
+            return (Seller) user;
+        }
+        return null;
+    }
 
     public static ReplyKeyboardMarkup keyboard(String[][] buttons) {
         List<KeyboardRow> rows = new ArrayList<>();
