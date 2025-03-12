@@ -20,4 +20,5 @@ public interface Button {
     String basket = "Savatim 🛒";
     String showHistoryBuyer = "Xarid Tarixi 📅";
     String balance = "Hisobni Boshqarish 💰";
+
 }
