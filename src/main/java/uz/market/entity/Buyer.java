@@ -13,7 +13,7 @@ import java.util.List;
 @Builder
 public class Buyer extends User {
     private String basketId;
-    private List<String> orderIds;
+        private List<String> orderIds;
 
     public Buyer(Long userId, String username, String fullName, String phoneNumber, Role role, boolean isRegistered, double balance) {
         super(userId, username, fullName, phoneNumber, role, isRegistered, balance);

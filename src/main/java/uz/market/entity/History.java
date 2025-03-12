@@ -14,7 +14,7 @@ import java.util.List;
 @Builder
 public class History {
     private String id;
-    private String userId;
+    private Long userId;
     private List<String> orderIds;
     private LocalDateTime timestamp;
 }
