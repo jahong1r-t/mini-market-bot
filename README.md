@@ -1,1 +1,1 @@
-Mini market bot
+Mini market bot.
