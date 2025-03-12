@@ -9,8 +9,9 @@ public interface Message {
 
     ///Seller service messages
     String sellerMainPanelMsg = "👋 Assalomu alaykum. Ho'sh bugun nima qilamiz";
+    String shopCreateMsg = "Boshladik! Avvalo, do‘koningiz nomini yuboring.";
+    String noShopsMsg = "Afsus sizda hozircha do'kon mavjud emas";
 
     ///Buyer service messages
     String buyerMainPanelMsg = "👋 Assalomu alaykum. Ho'sh bugun nima sotib olamiz";
-
 }
