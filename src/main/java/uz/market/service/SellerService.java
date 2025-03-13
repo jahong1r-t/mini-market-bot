@@ -5,6 +5,7 @@ import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import uz.market.bot.MainBot;
 import uz.market.entity.Product;
+import uz.market.entity.Seller;
 import uz.market.entity.Shop;
 import uz.market.entity.enums.State;
 import uz.market.util.Button;
@@ -19,7 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 
-import static com.fasterxml.jackson.databind.jsonFormatVisitors.JsonValueFormat.UUID;
+
 import static uz.market.db.Datasource.*;
 
 public class SellerService extends MainBot {
@@ -37,17 +38,21 @@ public class SellerService extends MainBot {
                     sendMessage(chatId, Message.shopCreateMsg);
                     state.put(chatId, State.CREATE_SHOP);
                 }
-                case Button.showShops -> showShops(chatId);
+                case Button.showShops ->{ showShops(chatId);
+                state.put(chatId,State.SELLER_MAIN);}
                 case Button.addProduct -> {
 
                 sendMessage(chatId,Message.productCreateMsg);
                 tempProduct.put(chatId,new Product());
                 state.put(chatId,State.CREATE_PRODUCT_NAME);
                 }
+                case Button.deleteProfile -> {
+
+                    users.remove(chatId);
+sendMessage(chatId,"profilingiz o'chirildi!");
+state.put(chatId,State.SELLER_MAIN);
+                }
             }
-        } else if (currentState == State.CREATE_SHOP) {
-            String id = java.util.UUID.randomUUID().toString();
-         //   String id = UUID.randomUUID().toString();
         }
         else if (currentState == State.CREATE_SHOP) {
             String id = UUID.randomUUID().toString();
