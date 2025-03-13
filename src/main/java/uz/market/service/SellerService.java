@@ -18,13 +18,14 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
+
+import static com.fasterxml.jackson.databind.jsonFormatVisitors.JsonValueFormat.UUID;
 import static uz.market.db.Datasource.*;
 
 public class SellerService extends MainBot {
     public void service(Update update) {
         Long chatId = update.getMessage().getChatId();
         String text = update.getMessage().getText();
-
         state.putIfAbsent(chatId, State.SELLER_MAIN);
         State currentState = state.get(chatId);
 
@@ -44,6 +45,9 @@ public class SellerService extends MainBot {
                 state.put(chatId,State.CREATE_PRODUCT_NAME);
                 }
             }
+        } else if (currentState == State.CREATE_SHOP) {
+            String id = java.util.UUID.randomUUID().toString();
+         //   String id = UUID.randomUUID().toString();
         }
         else if (currentState == State.CREATE_SHOP) {
             String id = UUID.randomUUID().toString();
