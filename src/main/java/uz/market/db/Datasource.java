@@ -17,6 +17,8 @@ public class Datasource {
     // Foydalanuvchilar (chatId -> User)
     public static Map<Long, User> users = new ConcurrentHashMap<>();
 
+    public static Map<Long, History> histories = new ConcurrentHashMap<>();
+
     // Do‘konlar (shopId -> Shop)
     public static Map<String, Shop> shops = new LinkedHashMap<>();
 
@@ -44,32 +46,25 @@ public class Datasource {
     }
 
 
-
     static {
-        shops.put("1", new Shop("1", "Super Market", Arrays.asList(4, 5, 3), 5699941692L, new ArrayList<>()));
-        shops.put("2", new Shop("2", "Tech Store", Arrays.asList(5, 5, 4), 5699941692L, new ArrayList<>()));
-        shops.put("3", new Shop("3", "Fashion Hub", Arrays.asList(3, 4, 5), 5699941692L, new ArrayList<>()));
-        shops.put("4", new Shop("4", "Food Corner", Arrays.asList(4, 4, 4), 5699941692L, new ArrayList<>()));
-        shops.put("5", new Shop("5", "Gadget Zone", Arrays.asList(5, 3, 5), 5699941692L, new ArrayList<>()));
-        shops.put("6", new Shop("6", "Book World", Arrays.asList(4, 5, 5), 5699941692L, new ArrayList<>()));
-        shops.put("7", new Shop("7", "Home Decor", Arrays.asList(3, 3, 4), 5699941692L, new ArrayList<>()));
-        shops.put("8", new Shop("8", "Sport Shop", Arrays.asList(5, 4, 5), 5699941692L, new ArrayList<>()));
-        shops.put("9", new Shop("9", "Toy Land", Arrays.asList(4, 4, 5), 5699941692L, new ArrayList<>()));
-        shops.put("10", new Shop("10", "Beauty Store", Arrays.asList(5, 5, 3), 5699941692L, new ArrayList<>()));
-        List<String> productIds=new ArrayList<>();
+        products.put("1", new Product("1", "atirgul", 30.0, "src/main/resources3f7af495-6531-47fc-ae03-c6d3ab7375a3.jpg", "1", 4));
+        products.put("2", new Product("2", "lola", 40.0, "src/main/resources3f7af495-6531-47fc-ae03-c6d3ab7375a3.jpg", "1", 5));
+        products.put("3", new Product("3", "orxideya", 50.0, "src/main/resources3f7af495-6531-47fc-ae03-c6d3ab7375a3.jpg", "1", 2));
+        products.put("4", new Product("4", "nargiz", 20.0, "src/main/resources3f7af495-6531-47fc-ae03-c6d3ab7375a3.jpg", "1", 1));
+        products.put("5", new Product("5", "lavanda", 60.0, "src/main/resources3f7af495-6531-47fc-ae03-c6d3ab7375a3.jpg", "1", 1));
+
+
+        List<String> productIds = new ArrayList<>();
         productIds.add("1");
         productIds.add("2");
         productIds.add("3");
         productIds.add("4");
         productIds.add("5");
-        shops.put("11",new Shop("11","Flowers",Arrays.asList(4,5,4),6569144041L,productIds));
-  }
-    static{
-        products.put("1",new Product("1","atirgul",30.0,"resources/img.png","11"));
-        products.put("2",new Product("2","lola",40.0,"resources/img_1.png","11"));
-        products.put("3",new Product("3","orxideya",50.0,"resources/img_2.png","11"));
-        products.put("4",new Product("4","nargiz",20.0,"resources/img_3.png","11"));
-        products.put("5",new Product("5","lavanda",60.0,"resources/img_4.png","11"));
+        shops.put("1", new Shop("1", "Flowers", Arrays.asList(4, 5, 4), 5699941692L, productIds));
+    }
+
+    static {
+
 
     }
 
@@ -140,6 +135,8 @@ static {
 
 
     public static List<Order> getOrdersByBuyerId(Long buyerId){
+
+    public static List<Order> getOrdersByBuyerId(Long buyerId) {
         return orders.values().stream()
                 .filter(order -> order.getBuyerId().equals(buyerId))
                 .toList();
