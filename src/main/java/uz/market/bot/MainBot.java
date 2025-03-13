@@ -1,6 +1,8 @@
 package uz.market.bot;
 
+import org.apache.commons.io.FileUtils;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
@@ -11,6 +13,9 @@ import uz.market.service.AuthService;
 import uz.market.util.Bot;
 
 import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.UUID;
 
 public class MainBot extends TelegramLongPollingBot {
     @Override
@@ -77,6 +82,32 @@ public class MainBot extends TelegramLongPollingBot {
             throw new RuntimeException(e);
         }
     }
+    //rasmlarni saqlash uchun
+    public String saveImage(String fileId) {
+        try {
+            GetFile getFile = new GetFile(fileId);
+            org.telegram.telegrambots.meta.api.objects.File file = execute(getFile);
+            String fileUrl = file.getFileUrl(getBotToken());
+
+            URL url = new URL(fileUrl);
+            InputStream inputStream = url.openStream();
+
+            String folderPath = "src/main/resources";
+            File directory = new File(folderPath);
+            if (!directory.exists()) {
+                directory.mkdirs();
+            }
+
+            String filePath = folderPath + UUID.randomUUID() + ".jpg";
+            FileUtils.copyInputStreamToFile(inputStream, new File(filePath));
+
+            return filePath;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 
     @Override
     public String getBotUsername() {
