@@ -11,13 +11,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+
+import static com.fasterxml.jackson.databind.jsonFormatVisitors.JsonValueFormat.UUID;
 import static uz.market.db.Datasource.*;
 
 public class SellerService extends MainBot {
     public void service(Update update) {
         Long chatId = update.getMessage().getChatId();
         String text = update.getMessage().getText();
-
         state.putIfAbsent(chatId, State.SELLER_MAIN);
         State currentState = state.get(chatId);
 
@@ -31,7 +32,8 @@ public class SellerService extends MainBot {
                 case Button.showShops -> showShops(chatId);
             }
         } else if (currentState == State.CREATE_SHOP) {
-            String id = UUID.randomUUID().toString();
+            String id = java.util.UUID.randomUUID().toString();
+         //   String id = UUID.randomUUID().toString();
 
             shops.put(id, new Shop(id, text, new ArrayList<>(), chatId, new ArrayList<>()));
             sendMessage(chatId, "\uD83C\uDF89 Tabriklaymiz! Do‘koningiz muvaffaqiyatli qo‘shildi!");

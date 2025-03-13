@@ -105,4 +105,11 @@ public class Datasource {
 
         return markup;
     }
+    public static List<Order> getOrdersByBuyerId(Long buyerId){
+        return orders.values().stream()
+                .filter(order -> order.getBuyerId().equals(buyerId))
+                .toList();
+
+
+    }
 }
