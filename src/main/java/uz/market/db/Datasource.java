@@ -31,6 +31,8 @@ public class Datasource {
 
     // Foydalanuvchi holatlari (chatId -> State)
     public static Map<Long, State> state = new ConcurrentHashMap<>();
+    //Vaqtinchalik product saqlash uchun (chatId->Product)
+    public static Map<Long,Product>tempProduct=new HashMap<>();
 
     // usersdan buyer ni topib beradi
     public static Buyer getBuyer(Long userId) {
@@ -40,6 +42,7 @@ public class Datasource {
         }
         return null;
     }
+
 
 
     static {
@@ -53,7 +56,23 @@ public class Datasource {
         shops.put("8", new Shop("8", "Sport Shop", Arrays.asList(5, 4, 5), 5699941692L, new ArrayList<>()));
         shops.put("9", new Shop("9", "Toy Land", Arrays.asList(4, 4, 5), 5699941692L, new ArrayList<>()));
         shops.put("10", new Shop("10", "Beauty Store", Arrays.asList(5, 5, 3), 5699941692L, new ArrayList<>()));
+        List<String> productIds=new ArrayList<>();
+        productIds.add("1");
+        productIds.add("2");
+        productIds.add("3");
+        productIds.add("4");
+        productIds.add("5");
+        shops.put("11",new Shop("11","Flowers",Arrays.asList(4,5,4),6569144041L,productIds));
   }
+    static{
+        products.put("1",new Product("1","atirgul",30.0,"resources/img.png","11"));
+        products.put("2",new Product("2","lola",40.0,"resources/img_1.png","11"));
+        products.put("3",new Product("3","orxideya",50.0,"resources/img_2.png","11"));
+        products.put("4",new Product("4","nargiz",20.0,"resources/img_3.png","11"));
+        products.put("5",new Product("5","lavanda",60.0,"resources/img_4.png","11"));
+
+    }
+
 
     // usersdan seller ni topib beradi
     public static Seller getSeller(Long userId) {
@@ -104,7 +123,8 @@ public class Datasource {
         markup.setKeyboard(rows);
 
         return markup;
-    }static {
+    }
+static {
         // 10 ta default mahsulot qo'shish (добавлено quantity)
         products.put("1", new Product("1", "Smartfon", 299.99, "phone.jpg", "shop1", 10));
         products.put("2", new Product("2", "Noutbuk", 799.99, "laptop.jpg", "shop1", 5));
@@ -116,6 +136,15 @@ public class Datasource {
         products.put("8", new Product("8", "O'yin konsoli", 399.99, "console.jpg", "shop3", 6));
         products.put("9", new Product("9", "Printer", 149.99, "printer.jpg", "shop2", 9));
         products.put("10", new Product("10", "Klaviatura", 39.99, "keyboard.jpg", "shop1", 20));
+    }
+
+
+    public static List<Order> getOrdersByBuyerId(Long buyerId){
+        return orders.values().stream()
+                .filter(order -> order.getBuyerId().equals(buyerId))
+                .toList();
+
+
     }
 
 }
