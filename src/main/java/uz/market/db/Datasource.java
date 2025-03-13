@@ -124,6 +124,21 @@ public class Datasource {
 
         return markup;
     }
+static {
+        // 10 ta default mahsulot qo'shish (добавлено quantity)
+        products.put("1", new Product("1", "Smartfon", 299.99, "phone.jpg", "shop1", 10));
+        products.put("2", new Product("2", "Noutbuk", 799.99, "laptop.jpg", "shop1", 5));
+        products.put("3", new Product("3", "Televizor", 499.99, "tv.jpg", "shop2", 8));
+        products.put("4", new Product("4", "Naushnik", 59.99, "headphones.jpg", "shop1", 15));
+        products.put("5", new Product("5", "Planshet", 199.99, "tablet.jpg", "shop3", 7));
+        products.put("6", new Product("6", "Aqlli soat", 129.99, "smartwatch.jpg", "shop2", 12));
+        products.put("7", new Product("7", "Kamera", 349.99, "camera.jpg", "shop1", 4));
+        products.put("8", new Product("8", "O'yin konsoli", 399.99, "console.jpg", "shop3", 6));
+        products.put("9", new Product("9", "Printer", 149.99, "printer.jpg", "shop2", 9));
+        products.put("10", new Product("10", "Klaviatura", 39.99, "keyboard.jpg", "shop1", 20));
+    }
+
+
     public static List<Order> getOrdersByBuyerId(Long buyerId){
         return orders.values().stream()
                 .filter(order -> order.getBuyerId().equals(buyerId))
@@ -131,4 +146,5 @@ public class Datasource {
 
 
     }
+
 }
