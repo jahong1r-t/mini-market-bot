@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Map;
+import java.util.ArrayList;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -14,5 +14,5 @@ import java.util.Map;
 public class Basket {
     private String id;
     private Long buyerId;
-    private Map<String, Integer> productQuantities;
+    private ArrayList<String> productId;
 }

@@ -12,7 +12,7 @@ public enum State {
     CREATE_PRODUCT_PRICE,
     CREATE_PRODUCT_IMAGE,
     CHOOSE_SHOP,
-    CREATE_SHOP,SEARCH,
+    SEARCH,
 }
 
    

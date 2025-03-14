@@ -10,16 +10,12 @@ import uz.market.entity.enums.State;
 import uz.market.util.Button;
 import uz.market.util.Message;
 
-import java.io.File;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
 
-import static com.fasterxml.jackson.databind.jsonFormatVisitors.JsonValueFormat.UUID;
 import static uz.market.db.Datasource.*;
 
 public class SellerService extends MainBot {
@@ -37,41 +33,35 @@ public class SellerService extends MainBot {
                     sendMessage(chatId, Message.shopCreateMsg);
                     state.put(chatId, State.CREATE_SHOP);
                 }
-                case Button.showShops -> showShops(chatId);
+                case Button.showShops -> showShops(chatId, false);
                 case Button.addProduct -> {
 
-                sendMessage(chatId,Message.productCreateMsg);
-                tempProduct.put(chatId,new Product());
-                state.put(chatId,State.CREATE_PRODUCT_NAME);
+                    sendMessage(chatId, Message.productCreateMsg);
+                    tempProduct.put(chatId, new Product());
+                    state.put(chatId, State.CREATE_PRODUCT_NAME);
                 }
             }
         } else if (currentState == State.CREATE_SHOP) {
-            String id = java.util.UUID.randomUUID().toString();
-         //   String id = UUID.randomUUID().toString();
-        }
-        else if (currentState == State.CREATE_SHOP) {
             String id = UUID.randomUUID().toString();
 
             shops.put(id, new Shop(id, text, new ArrayList<>(), chatId, new ArrayList<>()));
             sendMessage(chatId, "\uD83C\uDF89 Tabriklaymiz! Do‘koningiz muvaffaqiyatli qo‘shildi!");
-            state.put(chatId,State.SELLER_MAIN);
-        }
-        else if(currentState==State.CREATE_PRODUCT_NAME){
+            state.put(chatId, State.SELLER_MAIN);
+
+        } else if (currentState == State.CREATE_PRODUCT_NAME) {
             tempProduct.get(chatId).setId(UUID.randomUUID().toString());
             tempProduct.get(chatId).setName(text);
-          sendMessage(chatId,Message.productPriceMsg);
-          state.put(chatId,State.CREATE_PRODUCT_PRICE);
-        }
-        else if(currentState==State.CREATE_PRODUCT_PRICE){
-            if (!text.matches("\\d+(\\.\\d+)?")||Double.parseDouble(text)<=0) {
+            sendMessage(chatId, Message.productPriceMsg);
+            state.put(chatId, State.CREATE_PRODUCT_PRICE);
+        } else if (currentState == State.CREATE_PRODUCT_PRICE) {
+            if (!text.matches("\\d+(\\.\\d+)?") || Double.parseDouble(text) <= 0) {
                 sendMessage(chatId, Message.invalidPriceMsg);
                 return;
             }
             tempProduct.get(chatId).setPrice(Double.parseDouble(text));
-            sendMessage(chatId,Message.productImageMsg);
-            state.put(chatId,State.CREATE_PRODUCT_IMAGE);
-        }
-        else if (currentState == State.CREATE_PRODUCT_IMAGE) {
+            sendMessage(chatId, Message.productImageMsg);
+            state.put(chatId, State.CREATE_PRODUCT_IMAGE);
+        } else if (currentState == State.CREATE_PRODUCT_IMAGE) {
             if (update.getMessage().hasPhoto()) {
                 PhotoSize photo = update.getMessage().getPhoto().stream()
                         .max(Comparator.comparing(PhotoSize::getFileSize))
@@ -81,10 +71,9 @@ public class SellerService extends MainBot {
                     String imagePath = saveImage(photo.getFileId());
                     tempProduct.get(chatId).setProductImg(imagePath);
 
-                    sendMessage(chatId, "✅ Rasm saqlandi!", new File(imagePath)); // Rasmni qayta yuborish (ixtiyoriy)
-
                     sendMessage(chatId, Message.chooseShopMsg);
-                    state.put(chatId, State.CHOOSE_SHOP);
+
+                    showShops(chatId, true);
                 } else {
                     sendMessage(chatId, "❌ Rasmni yuklashda xatolik. Qaytadan yuboring:");
                 }
@@ -92,41 +81,17 @@ public class SellerService extends MainBot {
                 sendMessage(chatId, "❌ Mahsulot rasmi bo‘sh bo‘lmasligi kerak! Qayta kiriting:");
             }
         }
-
-        else if(currentState==State.CHOOSE_SHOP){
-            Product product=tempProduct.get(chatId);
-            List<Shop>shopsByOwnerId=getShopsByOwnerId(chatId);
-            boolean isValidShop=shopsByOwnerId.stream()
-                    .anyMatch(shop ->shop.getName().equals(text));
-            if(!isValidShop){
-                sendMessage(chatId,"❌ Noto‘g‘ri do‘kon! Qayta tanlang:");
-                return;
-            }
-            shopsByOwnerId.stream()
-                    .filter(shop -> shop.getName().equals(text)) // Do‘kon nomi mos bo‘lsa
-                    .findFirst()
-                    .ifPresent(shop -> shop.getProductIds().add(product.getId())); // Agar shop mavjud bo‘lsa, mahsulotni qo‘shamiz
-
-            product.setShopId(text);
-            products.put(product.getId(),product);
-            tempProduct.remove(chatId);
-            sendMessage(chatId,Message.productAddedMsg);
-
-
-            state.put(chatId,State.SELLER_MAIN);
-        }
-
     }
 
 
-    private void showShops(Long chatId) {
+    private void showShops(Long chatId, boolean isForAddProduct) {
         StringBuilder sb = new StringBuilder();
-        sb.append("📢 Sizning do‘konlaringiz:\n\n");
+        sb.append("📢 Dokon:\n\n");
 
         List<Shop> shopsByOwnerId = getShopsByOwnerId(chatId);
 
         if (shopsByOwnerId.isEmpty()) {
-            sendMessage(chatId, Message.noShopsMsg);
+            sendMessage(chatId, Message.noProductsMsg);
             return;
         }
 
@@ -141,17 +106,17 @@ public class SellerService extends MainBot {
 
             sb
                     .append(i + 1)
-                    .append(". 🏪 ")
+                    .append(". 🏪 Do'kon nomi: ")
                     .append(shop.getName())
                     .append("\n")
-                    .append("   ⭐️ ")
+                    .append("   ⭐️ Reyting: ")
                     .append(shop.getRating())
-                    .append("  |  📦 ")
+                    .append("  |  📦Mahsulotlar soni: ")
                     .append(shop.getProductIds().size())
                     .append("\n\n");
 
             rowButtons.add(String.valueOf(i + 1));
-            rowData.add("shopId:" + shop.getId());
+            rowData.add(isForAddProduct ? "shopIdForProduct:" + shop.getId() : "shopId:" + shop.getId());
 
             if ((i + 1) % 5 == 0 || i == shopsByOwnerId.size() - 1) {
                 inlineButtonList.add(rowButtons.toArray(new String[0]));
@@ -167,8 +132,5 @@ public class SellerService extends MainBot {
 
         sendMessage(chatId, sb.toString(), inlineKeyboard(inlineButton, data));
     }
-
-
-
 
 }

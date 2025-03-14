@@ -6,6 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import uz.market.bot.MainBot;
+import uz.market.entity.Basket;
 import uz.market.entity.Buyer;
 import uz.market.entity.Seller;
 import uz.market.entity.enums.Role;
@@ -16,15 +17,12 @@ import uz.market.util.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static uz.market.db.Datasource.*;
 
 public class AuthService extends MainBot {
     public void service(Update update) {
-        if (update == null || update.getMessage() == null) {
-            return;
-        }
-
         Long chatId = update.getMessage().getChatId();
         String text = update.getMessage().getText();
         User from = update.getMessage().getFrom();
@@ -48,6 +46,7 @@ public class AuthService extends MainBot {
                                     null, Role.SELLER, false, 0.0);
                             seller.setShopIds(new ArrayList<>());
                             users.put(chatId, seller);
+
                             sendMessage(chatId, Message.phoneRequest, createPhoneButton());
                             state.put(chatId, State.PHONE_NUMBER_REQUEST);
                         }
@@ -57,6 +56,9 @@ public class AuthService extends MainBot {
                                     from.getFirstName() + " " + (from.getLastName() != null ? from.getLastName() : ""),
                                     null, Role.BUYER, false, 0.0);
                             buyer.setOrderIds(new ArrayList<>());
+                            String id = UUID.randomUUID().toString();
+                            buyer.setBasketId(id);
+                            baskets.put(id, new Basket(id, chatId, new ArrayList<>()));
                             users.put(chatId, buyer);
                             sendMessage(chatId, Message.phoneRequest, createPhoneButton());
                             state.put(chatId, State.PHONE_NUMBER_REQUEST);
