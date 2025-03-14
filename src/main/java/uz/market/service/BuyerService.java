@@ -18,34 +18,6 @@ import java.util.Map;
 import static uz.market.db.Datasource.*;
 
 public class BuyerService extends MainBot {
-
-    private final Map<Long, List<Product>> userBaskets = new HashMap<>();
-
-    public void service(Update update) {
-        Long chatId;
-
-        if (update.hasCallbackQuery()) {
-            chatId = update.getCallbackQuery().getMessage().getChatId();
-            String callbackData = update.getCallbackQuery().getData();
-            System.out.println("Callback received: " + callbackData); // Отладка
-
-            if (callbackData.startsWith("productId:")) {
-                String productId = callbackData.split(":")[1];
-                System.out.println("Product ID to add: " + productId); // Отладка
-                addToBasket(chatId, productId);
-                return;
-            } else {
-                System.out.println("Invalid callback data: " + callbackData); // Отладка
-                sendMessage(chatId, "Noto'g'ri buyruq!");
-            }
-        } else {
-            chatId = update.getMessage().getChatId();
-        }
-
-        String text = update.hasMessage() && update.getMessage().hasText() ?
-                update.getMessage().getText() : "";
-
-
     private static final Map<Long, Map<String, Integer>> basket = new HashMap<>();
 
     public void service(Update update) {
@@ -60,72 +32,81 @@ public class BuyerService extends MainBot {
                 case "/start" -> sendMessage(chatId, Message.buyerMainPanelMsg);
                 case Button.showShopsBuyer -> showShops(chatId);
                 case Button.basket -> showBasket(chatId);
-
-                case "📦 Tovarlar" -> showProducts(chatId);
+                case "showHistoryBuyer" -> showHistory(chatId);
+                case Button.balance -> manageBalance(chatId);
                 case Button.searchProduct -> {
-                    sendMessage(chatId, "Mahsulot nomini kiriting:");
+                    sendMessage(chatId, "Buyum nomini kirint");
                     state.put(chatId, State.SEARCH);
                 }
+                default -> sendMessage(chatId, "Iltimos kerakli bo'limni tanlang...");
             }
         } else if (currentState == State.SEARCH) {
             searchProducts(chatId, text);
             state.put(chatId, State.BUYER_MAIN);
+        } else if (currentState == State.BUYER_MANAGING_BALANCE) {
+            if (!isNumeric(text)) {
+                sendMessage(chatId, "❌ Iltimos, faqat son kiriting.");
+                return;
+            }
+
+            double amount = Double.parseDouble(text);
+            users.get(chatId).setBalance(users.get(chatId).getBalance() + amount);
+
+            sendMessage(chatId, "✅ Hisobingiz yangilandi! Yangi balans: " + users.get(chatId).getBalance());
+            state.remove(chatId);
         }
     }
 
-    private void addToBasket(Long chatId, String productId) {
-        System.out.println("Attempting to add product with ID: " + productId); // Отладка
-        Product product = products.get(productId);
-
-        if (product == null) {
-            System.out.println("Product not found in products map for ID: " + productId); // Отладка
-            sendMessage(chatId, "Tovar topilmadi! ID: " + productId);
-            return;
+    private boolean isNumeric(String str) {
+        try {
+            Double.parseDouble(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
         }
-
-        userBaskets.putIfAbsent(chatId, new ArrayList<>());
-        userBaskets.get(chatId).add(product);
-
-        String message = "✅ " + product.getName() + " savatga qo'shildi!\n" +
-                "Narxi: " + product.getPrice() + "\n" +
-                "Savatdagi tovarlar soni: " + userBaskets.get(chatId).size();
-        sendMessage(chatId, message);
     }
 
-    private void showProducts(Long chatId) {
+    private void searchProducts(Long chatId, String text) {
         StringBuilder sb = new StringBuilder();
-        sb.append("📦 Mavjud bo'lgan tovarlar:\n\n");
-
-        List<Product> availableProducts = getAvailableProducts();
-
-        if (availableProducts.isEmpty()) {
-            sendMessage(chatId, "Tovar hozircha mavjud emas.");
-            return;
-        }
+        sb.append("🔍 Qidiruv natijalari (Nomi: ").append(text).append("):\n\n");
 
         List<String[]> inlineButtonList = new ArrayList<>();
         List<String[]> dataList = new ArrayList<>();
-
         List<String> rowButtons = new ArrayList<>();
         List<String> rowData = new ArrayList<>();
 
-        for (int i = 0; i < availableProducts.size(); i++) {
-            Product product = availableProducts.get(i);
+        List<Product> availableProducts = getAvailableProducts();
+        String searchName = text.trim().toLowerCase();
+
+        List<Product> matchedProducts = new ArrayList<>();
+
+        // Faqat qidiruvga mos keladigan mahsulotlarni yig‘ish
+        for (Product product : availableProducts) {
+            if (product.getName().toLowerCase().startsWith(searchName)) {
+                matchedProducts.add(product);
+            }
+        }
+
+        if (matchedProducts.isEmpty()) {
+            sendMessage(chatId, "❌ Hech qanday mahsulot topilmadi.");
+            return;
+        }
+
+        for (int i = 0; i < matchedProducts.size(); i++) {
+            Product p = matchedProducts.get(i);
 
             sb.append(i + 1)
-                    .append(". 📋 ")
-                    .append(product.getName())
+                    .append(". 🛍️ ")
+                    .append(p.getName())
                     .append("\n")
-                    .append("   💰 ")
-                    .append(product.getPrice())
-                    .append("  |  📏 ")
-                    .append(product.getQuantity())
-                    .append("\n\n");
+                    .append("   💰 Narxi: ")
+                    .append(p.getPrice())
+                    .append(" so‘m\n\n");
 
             rowButtons.add(String.valueOf(i + 1));
-            rowData.add("productId:" + product.getId());
+            rowData.add("productId:" + p.getId());
 
-            if ((i + 1) % 5 == 0 || i == availableProducts.size() - 1) {
+            if ((i + 1) % 5 == 0 || i == matchedProducts.size() - 1) {
                 inlineButtonList.add(rowButtons.toArray(new String[0]));
                 dataList.add(rowData.toArray(new String[0]));
 
@@ -134,36 +115,10 @@ public class BuyerService extends MainBot {
             }
         }
 
-        String[][] inlineButtons = inlineButtonList.toArray(new String[0][0]);
+        String[][] inlineButton = inlineButtonList.toArray(new String[0][0]);
         String[][] data = dataList.toArray(new String[0][0]);
 
-        sendMessage(chatId, sb.toString(), inlineKeyboard(inlineButtons, data));
-    }
-
-    private void searchProducts(Long chatId, String text) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("🔍 Qidiruv natijasi (Nomi: ").append(text).append("):\n\n");
-
-        List<Product> availableProducts = getAvailableProducts();
-        Product foundProduct = null;
-
-        String searchName = text.trim().toLowerCase();
-        for (Product product : availableProducts) {
-            if (product.getName().toLowerCase().equals(searchName)) {
-                foundProduct = product;
-                break;
-                case "buy" -> showShops(chatId);
-                case "showHistoryBuyer" -> showHistory(chatId);
-                case Button.balance -> manageBalance(chatId);
-                default -> sendMessage(chatId, "Iltimos kerakli bo'limni tanlang...");
-            }
-        } else if (currentState == State.BUYER_SELECTING_SHOP) {
-            showProducts(chatId, text);
-        } else if (currentState == State.BUYER_SELECTING_PRODUCT) {
-            buyProduct(chatId, text);
-        } else if (currentState == State.BUYER_MANAGING_BALANCE) {
-            updateBalance(chatId, text);
-        }
+        sendMessage(chatId, sb.toString(), inlineKeyboard(inlineButton, data));
     }
 
     private void showBasket(Long chatId) {
@@ -276,26 +231,6 @@ public class BuyerService extends MainBot {
         sendMessage(chatId, basketMsg.toString(), markup);
     }
 
-    private void buyProduct(Long chatId, String productId) {
-        Buyer buyer = getBuyer(chatId);
-        if (buyer == null) {
-            sendMessage(chatId, "siz hali royhatdan otmagansiz...");
-            return;
-        }
-        Product product = products.get(productId);
-        if (product == null) {
-            sendMessage(chatId, "Mahsulot topilmadi...");
-            return;
-        }
-        if (buyer.getBalance() < product.getPrice()) {
-            sendMessage(chatId, "balansingizda mablag yetarli emas...");
-            return;
-        }
-        buyer.setBalance(buyer.getBalance() - product.getPrice());
-        sendMessage(chatId, product.getName() + " sotib olindi...");
-        state.put(chatId, State.BUYER_MAIN);
-    }
-
     private void showHistory(Long chatId) {
         Buyer buyer = getBuyer(chatId);
         if (buyer == null) {
@@ -321,55 +256,24 @@ public class BuyerService extends MainBot {
         sendMessage(chatId, historyMsg.toString());
     }
 
-    private void manageBalance(Long chatId) {
+    private void buyProduct(Long chatId, String productId) {
         Buyer buyer = getBuyer(chatId);
         if (buyer == null) {
-            sendMessage(chatId, "Siz ro‘yxatdan o‘tmagansiz!");
+            sendMessage(chatId, "siz hali royhatdan otmagansiz...");
             return;
         }
-        sendMessage(chatId, "Hozirda sizning balansingiz:" + buyer.getBalance() +
-                "\nBalansizgizni toldirish uchun summa kiriting:");
-        state.put(chatId, State.BUYER_MANAGING_BALANCE);
-    }
-
-    private void updateBalance(Long chatId, String text) {
-        try {
-            double amount = Double.parseDouble(text);
-            Buyer buyer = getBuyer(chatId);
-            if (buyer != null) {
-                buyer.setBalance(buyer.getBalance() + amount);
-                sendMessage(chatId, "balansingiz muvaffaqiyatli toldirildi, hozirda" + buyer.getBalance() + "soums");
-                state.put(chatId, State.BUYER_MAIN);
-            }
-        } catch (NumberFormatException e) {
-            sendMessage(chatId, "summa xato kiritildi...qayta urining!");
-        }
-
-
-        if (foundProduct == null) {
-            sendMessage(chatId, "Nomi bo'yicha tovar topilmadi: " + text);
+        Product product = products.get(productId);
+        if (product == null) {
+            sendMessage(chatId, "Mahsulot topilmadi...");
             return;
         }
-
-        System.out.println("Found Product ID: " + foundProduct.getId()); // Отладка
-        sb.append("📋 ")
-                .append(foundProduct.getName())
-                .append("\n")
-                .append("   💰 ")
-                .append(foundProduct.getPrice())
-                .append("  |  📏 ")
-                .append(foundProduct.getQuantity())
-                .append("\n");
-
-        String[][] inlineButtons = new String[][]{{"1"}};
-        String[][] data = new String[][]{{"productId:" + foundProduct.getId()}};
-        System.out.println("Callback Data: " + data[0][0]); // Отладка
-        sendMessage(chatId, sb.toString(), inlineKeyboard(inlineButtons, data));
-    }
-
-    private List<Product> getAvailableProducts() {
-        System.out.println("Products in Datasource: " + products); // Отладка
-        return new ArrayList<>(products.values());
+        if (buyer.getBalance() < product.getPrice()) {
+            sendMessage(chatId, "balansingizda mablag yetarli emas...");
+            return;
+        }
+        buyer.setBalance(buyer.getBalance() - product.getPrice());
+        sendMessage(chatId, product.getName() + " sotib olindi...");
+        state.put(chatId, State.BUYER_MAIN);
     }
 
     private void showShops(Long chatId) {
@@ -419,6 +323,15 @@ public class BuyerService extends MainBot {
 
         sendMessage(chatId, sb.toString(), inlineKeyboard(inlineButton, data));
     }
-}
 
+    private void manageBalance(Long chatId) {
+        Buyer buyer = getBuyer(chatId);
+        if (buyer == null) {
+            sendMessage(chatId, "Siz ro‘yxatdan o‘tmagansiz!");
+            return;
+        }
+        sendMessage(chatId, "Hozirda sizning balansingiz:" + buyer.getBalance() +
+                "\nBalansizgizni toldirish uchun summa kiriting:");
+        state.put(chatId, State.BUYER_MANAGING_BALANCE);
+    }
 }

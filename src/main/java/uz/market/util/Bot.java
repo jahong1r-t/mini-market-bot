@@ -1,6 +1,6 @@
 package uz.market.util;
 
 public interface Bot {
-    public static String TOKEN = "7869116708:AAGtQuAASREJYUIM2cFTed3eP9QO2QZD7gI";
-    public static String USERNAME = "@rhewrjyH_bot";
+    public static String TOKEN = "7760887487:AAGzgiuZ2jnbHEBDdpzZs8suDV795GcFfaE";
+    public static String USERNAME = "@olcha_market_bot:";
 }

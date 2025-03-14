@@ -72,38 +72,15 @@ public class SellerService extends MainBot {
                     tempProduct.get(chatId).setProductImg(imagePath);
 
                     sendMessage(chatId, Message.chooseShopMsg);
+
                     showShops(chatId, true);
-                    state.put(chatId, State.CHOOSE_SHOP);
                 } else {
                     sendMessage(chatId, "❌ Rasmni yuklashda xatolik. Qaytadan yuboring:");
                 }
             } else {
                 sendMessage(chatId, "❌ Mahsulot rasmi bo‘sh bo‘lmasligi kerak! Qayta kiriting:");
             }
-        } else if (currentState == State.CHOOSE_SHOP) {
-
-            Product product = tempProduct.get(chatId);
-            List<Shop> shopsByOwnerId = getShopsByOwnerId(chatId);
-            boolean isValidShop = shopsByOwnerId.stream()
-                    .anyMatch(shop -> shop.getName().equals(text));
-            if (!isValidShop) {
-                sendMessage(chatId, "❌ Noto‘g‘ri do‘kon! Qayta tanlang:");
-                return;
-            }
-            shopsByOwnerId.stream()
-                    .filter(shop -> shop.getName().equals(text))
-                    .findFirst()
-                    .ifPresent(shop -> shop.getProductIds().add(product.getId()));
-
-            product.setShopId(text);
-            products.put(product.getId(), product);
-            tempProduct.remove(chatId);
-            sendMessage(chatId, Message.productAddedMsg);
-
-
-            state.put(chatId, State.SELLER_MAIN);
         }
-
     }
 
 

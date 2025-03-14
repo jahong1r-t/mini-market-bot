@@ -11,6 +11,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import uz.market.entity.*;
 import uz.market.entity.enums.Role;
+import uz.market.entity.enums.State;
 import uz.market.service.AuthService;
 import uz.market.util.Bot;
 import uz.market.util.Message;
@@ -44,7 +45,8 @@ public class MainBot extends TelegramLongPollingBot {
             } else if (data.startsWith("editProduct:")) {
 
             } else if (data.startsWith("shopIdForProduct:")) {
-                addProductToShop(data.substring(17), id);
+                String shopId = data.replace("shopIdForProduct:", "");
+                addProductToShop(shopId, id);
             } else if (data.startsWith("basket:")) {
                 String basketId = data.substring(data.indexOf("basket:") + 7, data.indexOf(":price:"));
                 String totalPrice = data.substring(data.indexOf(":price:") + 7);
@@ -65,8 +67,21 @@ public class MainBot extends TelegramLongPollingBot {
         }
     }
 
-    private void addProductToShop(String data, Long chatId) {
+    private void addProductToShop(String shopId, Long chatId) {
+        if (shops.containsKey(shopId) && tempProduct.containsKey(chatId)) {
+            Shop selectedShop = shops.get(shopId);
+            Product product = tempProduct.get(chatId);
+            product.setShopId(shopId);
+            selectedShop.getProductIds().add(product.getId());
+            products.put(product.getId(), product);
 
+            sendMessage(chatId, "✅ Mahsulot " + selectedShop.getName() + " do‘koniga muvaffaqiyatli qo‘shildi!");
+            tempProduct.remove(chatId);
+            state.put(chatId, State.SELLER_MAIN);
+        } else {
+            sendMessage(chatId, "❌ Xatolik: Do‘kon yoki mahsulot topilmadi.");
+
+        }
     }
 
     private void addToBasket(Long chatId, String productId) {
@@ -77,17 +92,19 @@ public class MainBot extends TelegramLongPollingBot {
 
     private void getOneProductItem(String productId, Long chatId) {
         Product product = products.get(productId);
+        Shop shop = shops.get(product.getShopId());
+        System.out.println(shop);
+
         String caption = String.format(
                 "🛍 %s\n\n" +
                         "💰 Narxi: %.2f so'm\n" +
                         "🏪 Do‘kon: %s",
                 product.getName(),
                 product.getPrice(),
-                shops.get(product.getShopId()).getName()
+                shop.getName()
         );
 
         User user = users.get(chatId);
-
 
         sendMessage(chatId, caption, new File(product.getProductImg()), user.getRole() == Role.BUYER ? inlineKeyboard(new String[][]{{"Savatga qo'shish"}}, new String[][]{{"toBasketProduct:" + product.getId()}}) : inlineKeyboard(new String[][]{{"Mahsulotni taxrirlash"}}, new String[][]{{"editProduct:" + product.getId()}}));
     }
@@ -218,7 +235,7 @@ public class MainBot extends TelegramLongPollingBot {
             URL url = new URL(fileUrl);
             InputStream inputStream = url.openStream();
 
-            String folderPath = "src/main/resources/";
+            String folderPath = "src/main/resources";
             File directory = new File(folderPath);
             if (!directory.exists()) {
                 directory.mkdirs();

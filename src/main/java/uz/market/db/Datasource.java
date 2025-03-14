@@ -33,8 +33,9 @@ public class Datasource {
 
     // Foydalanuvchi holatlari (chatId -> State)
     public static Map<Long, State> state = new ConcurrentHashMap<>();
+
     //Vaqtinchalik product saqlash uchun (chatId->Product)
-    public static Map<Long,Product>tempProduct=new HashMap<>();
+    public static Map<Long, Product> tempProduct = new HashMap<>();
 
     // usersdan buyer ni topib beradi
     public static Buyer getBuyer(Long userId) {
@@ -47,11 +48,11 @@ public class Datasource {
 
 
     static {
-        products.put("1", new Product("1", "atirgul", 30.0, "src/main/resources3f7af495-6531-47fc-ae03-c6d3ab7375a3.jpg", "1", 4));
-        products.put("2", new Product("2", "lola", 40.0, "src/main/resources3f7af495-6531-47fc-ae03-c6d3ab7375a3.jpg", "1", 5));
-        products.put("3", new Product("3", "orxideya", 50.0, "src/main/resources3f7af495-6531-47fc-ae03-c6d3ab7375a3.jpg", "1", 2));
-        products.put("4", new Product("4", "nargiz", 20.0, "src/main/resources3f7af495-6531-47fc-ae03-c6d3ab7375a3.jpg", "1", 1));
-        products.put("5", new Product("5", "lavanda", 60.0, "src/main/resources3f7af495-6531-47fc-ae03-c6d3ab7375a3.jpg", "1", 1));
+        products.put("1", new Product("1", "Atirgul", 30.0, "src/main/resources3f7af495-6531-47fc-ae03-c6d3ab7375a3.jpg", "1", 4));
+        products.put("2", new Product("2", "Lola", 40.0, "src/main/resources3f7af495-6531-47fc-ae03-c6d3ab7375a3.jpg", "1", 5));
+        products.put("3", new Product("3", "Orxideya", 50.0, "src/main/resources3f7af495-6531-47fc-ae03-c6d3ab7375a3.jpg", "1", 2));
+        products.put("4", new Product("4", "Nargiz", 20.0, "src/main/resources3f7af495-6531-47fc-ae03-c6d3ab7375a3.jpg", "1", 1));
+        products.put("5", new Product("5", "Lavanda", 60.0, "src/main/resources3f7af495-6531-47fc-ae03-c6d3ab7375a3.jpg", "1", 1));
 
 
         List<String> productIds = new ArrayList<>();
@@ -59,13 +60,12 @@ public class Datasource {
         productIds.add("2");
         productIds.add("3");
         productIds.add("4");
-        productIds.add("5");
+        productIds.add("6");
+        productIds.add("7");
+        productIds.add("8");
+        productIds.add("9");
+        productIds.add("10");
         shops.put("1", new Shop("1", "Flowers", Arrays.asList(4, 5, 4), 5699941692L, productIds));
-    }
-
-    static {
-
-
     }
 
 
@@ -76,6 +76,10 @@ public class Datasource {
             return (Seller) user;
         }
         return null;
+    }
+
+    public static List<Product> getAvailableProducts() {
+        return new ArrayList<>(products.values());
     }
 
 
@@ -119,29 +123,20 @@ public class Datasource {
 
         return markup;
     }
-static {
+
+    static {
         // 10 ta default mahsulot qo'shish (добавлено quantity)
-        products.put("1", new Product("1", "Smartfon", 299.99, "phone.jpg", "shop1", 10));
-        products.put("2", new Product("2", "Noutbuk", 799.99, "laptop.jpg", "shop1", 5));
-        products.put("3", new Product("3", "Televizor", 499.99, "tv.jpg", "shop2", 8));
-        products.put("4", new Product("4", "Naushnik", 59.99, "headphones.jpg", "shop1", 15));
-        products.put("5", new Product("5", "Planshet", 199.99, "tablet.jpg", "shop3", 7));
-        products.put("6", new Product("6", "Aqlli soat", 129.99, "smartwatch.jpg", "shop2", 12));
-        products.put("7", new Product("7", "Kamera", 349.99, "camera.jpg", "shop1", 4));
-        products.put("8", new Product("8", "O'yin konsoli", 399.99, "console.jpg", "shop3", 6));
-        products.put("9", new Product("9", "Printer", 149.99, "printer.jpg", "shop2", 9));
-        products.put("10", new Product("10", "Klaviatura", 39.99, "keyboard.jpg", "shop1", 20));
+        products.put("6", new Product("6", "Noutbuk", 799.99, "src/main/resources3f7af495-6531-47fc-ae03-c6d3ab7375a3.jpg", "1", 5));
+        products.put("7", new Product("7", "Televizor", 499.99, "src/main/resources3f7af495-6531-47fc-ae03-c6d3ab7375a3.jpg", "1", 8));
+        products.put("8", new Product("8", "Naushnik", 59.99, "src/main/resources3f7af495-6531-47fc-ae03-c6d3ab7375a3.jpg", "1", 15));
+        products.put("9", new Product("9", "Planshet", 199.99, "src/main/resources3f7af495-6531-47fc-ae03-c6d3ab7375a3.jpg", "1", 7));
+        products.put("10", new Product("10", "Aqlli soat", 129.99, "src/main/resources3f7af495-6531-47fc-ae03-c6d3ab7375a3.jpg", "1", 12));
     }
 
-
-    public static List<Order> getOrdersByBuyerId(Long buyerId){
 
     public static List<Order> getOrdersByBuyerId(Long buyerId) {
         return orders.values().stream()
                 .filter(order -> order.getBuyerId().equals(buyerId))
                 .toList();
-
-
     }
-
 }
